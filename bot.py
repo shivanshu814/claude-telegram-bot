@@ -28,14 +28,19 @@ async def run_shell(cmd: str) -> tuple[bool, str]:
     return proc.returncode == 0, out
 
 
-async def run_claude(prompt: str, cwd: str) -> str:
+async def run_claude(prompt: str, cwd: str, timeout: int = 300) -> str:
     proc = await asyncio.create_subprocess_exec(
-        "claude", "--continue", "-p", prompt,
+        "claude", "-p", prompt,
         cwd=cwd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    stdout, stderr = await proc.communicate()
+    try:
+        stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.communicate()
+        return f"Timeout: Claude ne {timeout}s mein respond nahi kiya."
     output = stdout.decode().strip()
     return output or stderr.decode().strip() or "Claude ne koi response nahi diya."
 
