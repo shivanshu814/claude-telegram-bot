@@ -1,0 +1,6 @@
+
+# BlamePrompt staging (auto-generated)
+.blameprompt/
+.env
+venv
+plan.md
